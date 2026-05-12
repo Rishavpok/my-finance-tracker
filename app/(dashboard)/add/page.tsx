@@ -36,8 +36,14 @@ type TransactionForm = {
   note?: string;
 };
 
+type category = {
+  icon: string;
+  name: string;
+};
+
 export default function AddTransactionPage() {
   const [activeIndex, setactiveIndex] = useState(0);
+  const [categories, setcategories] = useState<category[]>([]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,6 +85,11 @@ export default function AddTransactionPage() {
     // navigate to transaction
     router.push("/transactions");
   }
+
+  useEffect(() => {
+    const list = JSON.parse(localStorage.getItem("categories") || "[]");
+    setcategories(list);
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -175,8 +186,8 @@ export default function AddTransactionPage() {
               >
                 <option value="">Select category</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -217,11 +228,15 @@ export default function AddTransactionPage() {
 
           {/* Actions */}
           <div className={styles.actions}>
-            <button type="button" onClick={() => router.push("/transactions") } className={styles.btnSecondary}>Cancel</button>
+            <button
+              type="button"
+              onClick={() => router.push("/transactions")}
+              className={styles.btnSecondary}
+            >
+              Cancel
+            </button>
             <button type="submit" className={styles.btnPrimary}>
-              {
-                !id ? "Save Transaction" : "Update Transaction"
-              }
+              {!id ? "Save Transaction" : "Update Transaction"}
             </button>
           </div>
         </div>

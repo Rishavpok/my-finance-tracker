@@ -4,6 +4,11 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+type category = {
+  icon: string;
+  name: string;
+};
+
 const categoryIcons: Record<string, string> = {
   "Food & Dining": "🍔",
   Transport: "🚗",
@@ -40,13 +45,14 @@ type Transaction = {
 
 export default function TransactionsPage() {
   const [transactions, setTransaction] = useState<Transaction[]>([]);
+  const [categories, setcategories] = useState<category[]>([]);
 
   const [income, setincome] = useState(0);
   const [expense, setexpense] = useState(0);
   const [total, settotal] = useState(0);
 
-  // router 
-  const router = useRouter()
+  // router
+  const router = useRouter();
 
   function totalCalculation(list: Transaction[]) {
     // 👈 accept as parameter
@@ -112,9 +118,14 @@ export default function TransactionsPage() {
     totalCalculation(filtered);
   }
 
-  function handleEdit(id :string) {
-    router.push(`/add?id=${id}`)
+  function handleEdit(id: string) {
+    router.push(`/add?id=${id}`);
   }
+
+  useEffect(() => {
+    const list = JSON.parse(localStorage.getItem("categories") || "[]");
+    setcategories(list);
+  }, []);
 
   useEffect(() => {
     const list = JSON.parse(localStorage.getItem("transactions") || "[]");
@@ -180,8 +191,8 @@ export default function TransactionsPage() {
         >
           <option value="all">All Categories</option>
           {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
+            <option key={cat.name} value={cat.name}>
+              {cat.name}
             </option>
           ))}
         </select>
@@ -242,7 +253,11 @@ export default function TransactionsPage() {
 
             {/* Actions */}
             <div className={styles.actions}>
-              <button type="button" onClick={() => handleEdit(t.id) } className={styles.editBtn}>
+              <button
+                type="button"
+                onClick={() => handleEdit(t.id)}
+                className={styles.editBtn}
+              >
                 ✏️
               </button>
               <button
