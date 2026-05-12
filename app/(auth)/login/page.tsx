@@ -3,6 +3,8 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { loginUser } from "@/actions/auth";
+import { signIn } from "next-auth/react";
 
 type loginForm = {
   email: string;
@@ -10,34 +12,26 @@ type loginForm = {
 };
 
 export default function Login() {
-  const router = useRouter()
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<loginForm>();
 
-  function onSubmit(data: loginForm) {
-    const stored = localStorage.getItem("user");
+  async function onSubmit(data: any) {
+    const result = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
 
-    if(!stored) {
-      alert("No user found.Please register First")
-      return ;
+    if (result?.error) {
+      alert("Invalid email or password");
+      return;
     }
 
-    const user = JSON.parse(stored)
-
-    if(user.email !== data.email || user.password !== data.password) {
-      alert("Invalid email or password")
-      return ;
-    }
-
-    // save loggedIn session
-    localStorage.setItem("loggedInUser" , JSON.stringify(user))
-
-    // navigate to dashboard page
-
-    router.push("/")
+    router.push("/");
   }
 
   return (
