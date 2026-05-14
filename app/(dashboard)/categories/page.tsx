@@ -3,28 +3,43 @@
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import AddCategoryModal from "@/components/AddCategoryModal";
+import toast from "react-hot-toast";
+import { getCategory } from "@/app/services/categories.service";
 
 type category = {
-  icon : string,
-  name : string,
-  amount : string
-}
+  icon: string;
+  name: string;
+  amount: string;
+};
 
 export default function CategoriesPage() {
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState<category[]>([]);
 
-  function deleteCategory(name:string) {
+  function deleteCategory(name: string) {
     const list = JSON.parse(localStorage.getItem("categories") || "[]");
-    const filtered = list.filter((t : category) => t.name !== name  )
-    localStorage.setItem("categories" , JSON.stringify(filtered))
+    const filtered = list.filter((t: category) => t.name !== name);
+    localStorage.setItem("categories", JSON.stringify(filtered));
 
-    setCategories(filtered)
+    setCategories(filtered);
+  }
+
+  async function getCategories() {
+    try {
+      const res = await getCategory();
+      setCategories(res["data"]["data"]);
+    } catch (e) {
+      toast.error("Something went wrong");
+    }
+  }
+
+  function handleClose() {
+    setShowModal(false);
+    getCategories();
   }
 
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("categories") || "[]");
-    setCategories(list);
+    getCategories();
   }, []);
 
   return (
@@ -46,7 +61,7 @@ export default function CategoriesPage() {
         </button>
       </div>
 
-      {showModal && <AddCategoryModal onClose={() => setShowModal(false)} />}
+      {showModal && <AddCategoryModal onClose={handleClose} />}
 
       {/* ── Summary strip ── */}
       <div className={styles.summaryStrip}>
@@ -66,7 +81,13 @@ export default function CategoriesPage() {
                   <div className={styles.iconWrapper}>
                     <span className={styles.icon}>{cat.icon}</span>
                   </div>
-                  <button type="button" onClick={() => deleteCategory(cat.name)} className={styles.deleteBtn}>🗑️</button>
+                  <button
+                    type="button"
+                    onClick={() => deleteCategory(cat.name)}
+                    className={styles.deleteBtn}
+                  >
+                    🗑️
+                  </button>
                 </div>
 
                 {/* Add these two lines */}

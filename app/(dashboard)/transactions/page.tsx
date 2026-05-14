@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { getTransactions } from "@/app/services/transaction.service";
+import { getCategory } from "@/app/services/categories.service";
 
 type category = {
   icon: string;
@@ -122,15 +125,26 @@ export default function TransactionsPage() {
     router.push(`/add?id=${id}`);
   }
 
+  async function getTransaction() {
+    try {
+      const res = await getTransactions();
+      setTransaction(res['data']['data'])
+    } catch(e) {
+      toast.error("Something went wrong")
+    }
+  }
+
+  async function getCategories() {
+    const res = await getCategory()
+    setcategories(res['data']['data'])
+  }
+
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("categories") || "[]");
-    setcategories(list);
+    getCategories()
   }, []);
 
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-    setTransaction(list);
-    totalCalculation(list);
+    getTransaction()
   }, []);
   return (
     <div className={styles.page}>
@@ -206,7 +220,14 @@ export default function TransactionsPage() {
 
       {/* ── Transactions list ── */}
       <div className={styles.list}>
-        {transactions.map((t) => (
+        {
+          transactions.length === 0  ? (
+            <div >
+              Transactions not found
+            </div>
+          ) : ''
+        }
+        { transactions && transactions.map((t) => (
           <div key={t.id} className={styles.card}>
             {/* Icon */}
             <div

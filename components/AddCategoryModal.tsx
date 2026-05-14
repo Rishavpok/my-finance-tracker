@@ -3,14 +3,16 @@
 import { useState } from "react";
 import styles from "./modal.module.css";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { createCategory } from "@/app/services/categories.service";
 
 export default function AddCategoryModal({ onClose }: { onClose: () => void }) {
-  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   type CategoryForm = {
     icon: string;
     name: string;
-    amount: string;
+    amount: number;
   };
 
   const {
@@ -19,11 +21,27 @@ export default function AddCategoryModal({ onClose }: { onClose: () => void }) {
     formState: { errors },
   } = useForm<CategoryForm>();
 
-  function addCategory(data: CategoryForm) {
-    const list = JSON.parse(localStorage.getItem("categories") || "[]");
-    const updated = [...list, data];
-    localStorage.setItem("categories", JSON.stringify(updated));
-    onClose()
+  async function addCategory(data: CategoryForm) {
+    setIsLoading(true);
+    try {
+      let cat = {
+        name : data.name,
+        icon : data.icon,
+        budget: data.amount ? Number(data.amount) : null
+      };
+      const res = await createCategory(cat);
+      if (res) {
+        onClose();
+      }
+    } catch (e) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+
+    // const list = JSON.parse(localStorage.getItem("categories") || "[]");
+    // const updated = [...list, data];
+    // localStorage.setItem("categories", JSON.stringify(updated));
   }
 
   return (
@@ -93,16 +111,16 @@ export default function AddCategoryModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-                  {/* ── Actions ── */}
-        <div className={styles.actions}>
-          <button onClick={onClose} className={styles.btnSecondary}>
-            Cancel
-          </button>
-          <button type="submit" className={styles.btnPrimary}>Add Category</button>
-        </div>
+          {/* ── Actions ── */}
+          <div className={styles.actions}>
+            <button onClick={onClose} className={styles.btnSecondary}>
+              Cancel
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              Add Category
+            </button>
+          </div>
         </form>
-
-
       </div>
     </div>
   );

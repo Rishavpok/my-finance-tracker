@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getCategory } from "@/app/services/categories.service";
+import { createTransaction } from "@/app/services/transaction.service";
+import toast from "react-hot-toast";
 
 const categories = [
   "Food & Dining",
@@ -44,6 +47,7 @@ type category = {
 export default function AddTransactionPage() {
   const [activeIndex, setactiveIndex] = useState(0);
   const [categories, setcategories] = useState<category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,39 +60,30 @@ export default function AddTransactionPage() {
     formState: { errors },
   } = useForm<TransactionForm>();
 
-  function addTransaction(data: TransactionForm) {
-    const transactions = JSON.parse(
-      localStorage.getItem("transactions") || "[]",
-    );
+  async function addTransaction(data: TransactionForm) {
+    setIsLoading(false);
+    try {
+      const transaction = {...data , type : activeIndex === 0 ? 'expense' : 'income' }
+      const res = await createTransaction(transaction);
+      if (res) {
+        toast.success("Transaction added successfully");
+      }
 
-    if (id) {
-      const updated = transactions.map((t: Transaction) =>
-        t.id === id
-          ? { ...t, ...data, type: activeIndex === 1 ? "income" : "expense" }
-          : t,
-      );
-      localStorage.setItem("transactions", JSON.stringify(updated));
-    } else {
-      let newTransaction = {
-        id: crypto.randomUUID(),
-        title: data.title,
-        amount: data.amount,
-        category: data.category,
-        type: activeIndex === 1 ? "income" : "expense",
-        date: data.date,
-        note: data.note,
-      };
-
-      const updated = [...transactions, newTransaction];
-      localStorage.setItem("transactions", JSON.stringify(updated));
+      router.push("/transactions");
+    } catch (e) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
-    // navigate to transaction
-    router.push("/transactions");
+  }
+
+  async function getCategories() {
+    const res = await getCategory();
+    setcategories(res["data"]["data"]);
   }
 
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("categories") || "[]");
-    setcategories(list);
+    getCategories();
   }, []);
 
   useEffect(() => {

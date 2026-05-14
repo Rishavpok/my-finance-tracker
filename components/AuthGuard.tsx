@@ -11,7 +11,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
-    const user = localStorage.getItem("loggedInUser");
+    const user = localStorage.getItem("access_token");
 
     if (!user && !isPublicRoute) {
       // Not logged in → trying to access protected page → send to login

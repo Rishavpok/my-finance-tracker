@@ -3,6 +3,9 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { login } from "@/app/services/auth.service";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 type loginForm = {
   email: string;
@@ -10,34 +13,29 @@ type loginForm = {
 };
 
 export default function Login() {
-  const router = useRouter()
+  const router = useRouter();
+  const [ isLoading , setIsLoading ] = useState(false)
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<loginForm>();
 
-  function onSubmit(data: loginForm) {
-    const stored = localStorage.getItem("user");
-
-    if(!stored) {
-      alert("No user found.Please register First")
-      return ;
+  async function onSubmit(data: loginForm) {
+    setIsLoading(true)
+    try {
+      const res = await login(data);
+      if (res) {
+        toast.success("Login successfully")
+        localStorage.setItem("access_token", res['data']['access_token'])
+        localStorage.setItem("user" ,JSON.stringify(res['data']['user'] ) )
+        router.push("/");
+      }
+    } catch (e) {
+      toast.error("something went wrong")
+    } finally {
+         setIsLoading(false)
     }
-
-    const user = JSON.parse(stored)
-
-    if(user.email !== data.email || user.password !== data.password) {
-      alert("Invalid email or password")
-      return ;
-    }
-
-    // save loggedIn session
-    localStorage.setItem("loggedInUser" , JSON.stringify(user))
-
-    // navigate to dashboard page
-
-    router.push("/")
   }
 
   return (
@@ -91,7 +89,11 @@ export default function Login() {
               )}
             </div>
 
-            <button className={styles.btnPrimary}>Sign in</button>
+            <button disabled={isLoading} className={styles.btnPrimary}>
+              {
+                isLoading ? '...' : 'Sign in'
+              }
+            </button>
 
             <div className={styles.divider}>
               <span className={styles.dividerLine} />
