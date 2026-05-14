@@ -4,7 +4,11 @@ import styles from "./page.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getCategory } from "@/app/services/categories.service";
-import { createTransaction } from "@/app/services/transaction.service";
+import {
+  createTransaction,
+  getTransactionsById,
+  updateTransaction,
+} from "@/app/services/transaction.service";
 import toast from "react-hot-toast";
 
 const categories = [
@@ -57,14 +61,19 @@ export default function AddTransactionPage() {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<TransactionForm>();
 
   async function addTransaction(data: TransactionForm) {
-    setIsLoading(false);
+    setIsLoading(true);
     try {
-      const transaction = {...data , type : activeIndex === 0 ? 'expense' : 'income' }
-      const res = await createTransaction(transaction);
+      const transaction = {
+        ...data,
+        type: activeIndex === 0 ? "expense" : "income",
+      };
+     const res = await (id ? updateTransaction(transaction, id!) : createTransaction(transaction));
+
       if (res) {
         toast.success("Transaction added successfully");
       }
@@ -82,27 +91,30 @@ export default function AddTransactionPage() {
     setcategories(res["data"]["data"]);
   }
 
-  useEffect(() => {
-    getCategories();
-  }, []);
-
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
-
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-    const transaction = list.find((t: Transaction) => t.id === id);
-
+  async function getSingleTransaction(id: string) {
+    const res = await getTransactionsById(id);
+    const transaction = res['data']['transaction']
     if (transaction) {
-      setValue("title", transaction.title); // prefill form fields
-      setValue("amount", transaction.amount);
-      setValue("category", transaction.category);
-      setValue("date", transaction.date);
-      setValue("note", transaction.note);
-      setactiveIndex(transaction.type === "income" ? 1 : 0);
+  reset({
+      title: transaction.title,
+      amount: transaction.amount,
+      category: transaction.category,
+      date: transaction.date.split("T")[0],  // "2026-05-15"
+      note: transaction.note ?? "",
+    });
+    setactiveIndex(transaction.type === "income" ? 1 : 0);
     }
-  });
+  }
+
+useEffect(() => {
+  async function init() {
+    await getCategories(); // wait for categories to load first
+    if (id) {
+      await getSingleTransaction(id); // then prefill form
+    }
+  }
+  init();
+}, []); // single effect, correct order
 
   return (
     <div className={styles.page}>
@@ -230,7 +242,11 @@ export default function AddTransactionPage() {
             >
               Cancel
             </button>
-            <button type="submit" disabled={isLoading} className={styles.btnPrimary}>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={styles.btnPrimary}
+            >
               {!id ? "Save Transaction" : "Update Transaction"}
             </button>
           </div>
