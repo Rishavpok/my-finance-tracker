@@ -16,6 +16,7 @@ import {
   Legend,
 } from "recharts";
 import { useEffect, useState } from "react";
+import { getTransactions } from "../services/transaction.service";
 const PIE_COLORS = [
   "#16a34a",
   "#3b82f6",
@@ -178,12 +179,18 @@ export default function DashboardPage() {
     }));
   }
 
-  useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
+  async function getAllTransaction() {
+    const res = await getTransactions();
+    const list = res["data"]["data"];
+
     setTransaction(list);
     totalCalculation(list);
     setMonthlyData(getMonthlyData(list));
     setcategoryData(getCategoryData(list));
+  }
+
+  useEffect(() => {
+    getAllTransaction();
   }, []);
 
   return (

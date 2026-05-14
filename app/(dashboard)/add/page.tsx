@@ -230,7 +230,7 @@ export default function AddTransactionPage() {
             >
               Cancel
             </button>
-            <button type="submit" className={styles.btnPrimary}>
+            <button type="submit" disabled={isLoading} className={styles.btnPrimary}>
               {!id ? "Save Transaction" : "Update Transaction"}
             </button>
           </div>

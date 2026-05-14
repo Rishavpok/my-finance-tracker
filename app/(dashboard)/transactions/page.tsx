@@ -4,8 +4,8 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { getTransactions } from "@/app/services/transaction.service";
-import { getCategory } from "@/app/services/categories.service";
+import { deleteTransaction, getTransactions } from "@/app/services/transaction.service";
+import { deleteCategory, getCategory } from "@/app/services/categories.service";
 
 type category = {
   icon: string;
@@ -48,6 +48,7 @@ type Transaction = {
 
 export default function TransactionsPage() {
   const [transactions, setTransaction] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [categories, setcategories] = useState<category[]>([]);
 
   const [income, setincome] = useState(0);
@@ -78,8 +79,7 @@ export default function TransactionsPage() {
 
   function onSearch(e: any) {
     if (e.trim() === "") {
-      const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-      setTransaction(list);
+      getTransaction();
       return;
     }
 
@@ -91,34 +91,38 @@ export default function TransactionsPage() {
   }
 
   function handleType(type: string) {
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-
     if (type === "all") {
-      setTransaction(list);
+      setTransaction(allTransactions);
     } else {
-      const filtered = list.filter((t: Transaction) => t.type === type);
+      const filtered = allTransactions.filter(
+        (t: Transaction) => t.type === type,
+      );
       setTransaction(filtered);
     }
   }
 
   function handleCategoryChange(e: string) {
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-
     if (e === "all") {
-      setTransaction(list);
+      setTransaction(allTransactions);
     } else {
-      const filtered = list.filter((t: Transaction) => t.category === e);
+      const filtered = allTransactions.filter(
+        (t: Transaction) => t.category === e,
+      );
       setTransaction(filtered);
     }
   }
 
-  function handleDelete(id: string) {
-    const list = JSON.parse(localStorage.getItem("transactions") || "[]");
-    const filtered = list.filter((t: Transaction) => t.id !== id);
+  async function handleDelete(id: string) {
+    try {
+      const res = await deleteTransaction(id);
 
-    localStorage.setItem("transactions", JSON.stringify(filtered)); // 👈 add this
-    setTransaction(filtered);
-    totalCalculation(filtered);
+      if (res) {
+        toast.success("Transaction deleted successfully");
+        getTransaction();
+      }
+    } catch (e) {
+      toast.error("Something went wrong");
+    }
   }
 
   function handleEdit(id: string) {
@@ -128,23 +132,25 @@ export default function TransactionsPage() {
   async function getTransaction() {
     try {
       const res = await getTransactions();
-      setTransaction(res['data']['data'])
-    } catch(e) {
-      toast.error("Something went wrong")
+      setTransaction(res["data"]["data"]);
+      setAllTransactions(res["data"]["data"]);
+      totalCalculation(res["data"]["data"]);
+    } catch (e) {
+      toast.error("Something went wrong");
     }
   }
 
   async function getCategories() {
-    const res = await getCategory()
-    setcategories(res['data']['data'])
+    const res = await getCategory();
+    setcategories(res["data"]["data"]);
   }
 
   useEffect(() => {
-    getCategories()
+    getCategories();
   }, []);
 
   useEffect(() => {
-    getTransaction()
+    getTransaction();
   }, []);
   return (
     <div className={styles.page}>
@@ -220,77 +226,73 @@ export default function TransactionsPage() {
 
       {/* ── Transactions list ── */}
       <div className={styles.list}>
-        {
-          transactions.length === 0  ? (
-            <div >
-              Transactions not found
-            </div>
-          ) : ''
-        }
-        { transactions && transactions.map((t) => (
-          <div key={t.id} className={styles.card}>
-            {/* Icon */}
-            <div
-              className={`${styles.icon} ${t.type === "income" ? styles.iconIncome : styles.iconExpense}`}
-            >
-              {categoryIcons[t.category] ?? "📦"}
-            </div>
+        {transactions.length === 0 ? <div>Transactions not found</div> : ""}
+        {transactions &&
+          transactions.map((t) => (
+            <div key={t.id} className={styles.card}>
+              {/* Icon */}
+              <div
+                className={`${styles.icon} ${t.type === "income" ? styles.iconIncome : styles.iconExpense}`}
+              >
+                {categoryIcons[t.category] ?? "📦"}
+              </div>
 
-            {/* Info */}
-            <div className={styles.info}>
-              <p className={styles.transTitle}>{t.title}</p>
-              <div className={styles.transMeta}>
-                <span className={styles.category}>{t.category}</span>
-                <span className={styles.metaDot}>·</span>
-                <span className={styles.date}>
-                  {new Date(t.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+              {/* Info */}
+              <div className={styles.info}>
+                <p className={styles.transTitle}>{t.title}</p>
+                <div className={styles.transMeta}>
+                  <span className={styles.category}>{t.category}</span>
+                  <span className={styles.metaDot}>·</span>
+                  <span className={styles.date}>
+                    {new Date(t.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  {t.note && (
+                    <>
+                      <span className={styles.metaDot}>·</span>
+                      <span className={styles.note}>{t.note}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div className={styles.right}>
+                <p
+                  className={`${styles.amount} ${t.type === "income" ? styles.income : styles.expense}`}
+                >
+                  {t.type === "income" ? "+" : "-"}$
+                  {Number(t.amount).toFixed(2)}
+                </p>
+                <span
+                  className={`${styles.badge} ${t.type === "income" ? styles.badgeIncome : styles.badgeExpense}`}
+                >
+                  {t.type}
                 </span>
-                {t.note && (
-                  <>
-                    <span className={styles.metaDot}>·</span>
-                    <span className={styles.note}>{t.note}</span>
-                  </>
-                )}
+              </div>
+
+              {/* Actions */}
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  onClick={() => handleEdit(t.id)}
+                  className={styles.editBtn}
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(t.id)}
+                  className={styles.deleteBtn}
+                >
+                  🗑️
+                </button>
               </div>
             </div>
-
-            {/* Amount */}
-            <div className={styles.right}>
-              <p
-                className={`${styles.amount} ${t.type === "income" ? styles.income : styles.expense}`}
-              >
-                {t.type === "income" ? "+" : "-"}${Number(t.amount).toFixed(2)}
-              </p>
-              <span
-                className={`${styles.badge} ${t.type === "income" ? styles.badgeIncome : styles.badgeExpense}`}
-              >
-                {t.type}
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className={styles.actions}>
-              <button
-                type="button"
-                onClick={() => handleEdit(t.id)}
-                className={styles.editBtn}
-              >
-                ✏️
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(t.id)}
-                className={styles.deleteBtn}
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
