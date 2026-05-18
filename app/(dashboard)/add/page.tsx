@@ -202,6 +202,10 @@ useEffect(() => {
               {errors.category && (
                 <span className={styles.error}>{errors.category.message}</span>
               )}
+
+              {
+                categories.length === 0 ? <p className={styles.createcategory} >Please create a category first</p>: ""
+              }
             </div>
 
             <div className={styles.field}>
