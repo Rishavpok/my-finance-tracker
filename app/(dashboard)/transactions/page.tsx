@@ -214,19 +214,19 @@ export default function TransactionsPage() {
         <div className={styles.summaryCard}>
           <p className={styles.summaryLabel}>Total Income</p>
           <p className={`${styles.summaryAmount} ${styles.income}`}>
-            + ${income}
+            + Rs {income}
           </p>
         </div>
         <div className={styles.summaryCard}>
           <p className={styles.summaryLabel}>Total Expenses</p>
           <p className={`${styles.summaryAmount} ${styles.expense}`}>
-            - ${expense}
+            - Rs {expense}
           </p>
         </div>
         <div className={styles.summaryCard}>
           <p className={styles.summaryLabel}>Balance</p>
           <p className={`${styles.summaryAmount} ${styles.balance}`}>
-            ${total}
+            Rs {total}
           </p>
         </div>
       </div>
@@ -312,8 +312,8 @@ export default function TransactionsPage() {
                 <p
                   className={`${styles.amount} ${t.type === "income" ? styles.income : styles.expense}`}
                 >
-                  {t.type === "income" ? "+" : "-"}$
-                  {Number(t.amount).toFixed(2)}
+                  {t.type === "income" ? "+" : "-"}Rs 
+                   {Number(t.amount).toFixed(2)}
                 </p>
                 <span
                   className={`${styles.badge} ${t.type === "income" ? styles.badgeIncome : styles.badgeExpense}`}

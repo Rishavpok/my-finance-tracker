@@ -199,7 +199,7 @@ export default function DashboardPage() {
       <div className={styles.summaryGrid}>
         <div className={`${styles.summaryCard} ${styles.balanceCard}`}>
           <p className={styles.summaryLabel}>Total Balance</p>
-          <p className={styles.balanceAmount}>${total}</p>
+          <p className={styles.balanceAmount}>Rs {total}</p>
           <p className={styles.balanceSub}>Updated just now</p>
         </div>
 
@@ -209,7 +209,7 @@ export default function DashboardPage() {
             <span className={styles.summaryIcon}>💰</span>
           </div>
           <p className={`${styles.summaryAmount} ${styles.income}`}>
-            ${income}
+            Rs {income}
           </p>
           <p className={styles.summaryChange}>This month</p>
         </div>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
             <span className={styles.summaryIcon}>💸</span>
           </div>
           <p className={`${styles.summaryAmount} ${styles.expense}`}>
-            ${expense}
+            Rs {expense}
           </p>
           <p className={styles.summaryChange}>This month</p>
         </div>
@@ -359,7 +359,7 @@ export default function DashboardPage() {
               <p
                 className={`${styles.recentAmount} ${t.type === "income" ? styles.income : styles.expense}`}
               >
-                {t.type === "income" ? "+" : "-"}${Number(t.amount).toFixed(2)}
+                {t.type === "income" ? "+" : "-"}Rs {Number(t.amount).toFixed(2)}
               </p>
             </div>
           ))}

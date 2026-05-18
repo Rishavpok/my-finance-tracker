@@ -11,7 +11,7 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: "💸" },
   { href: "/add", label: "Add Transaction", icon: "➕" },
   { href: "/categories", label: "Categories", icon: "🏷️" },
-  //  { href: "/insights", label: "AI Insights", icon: "🏷️" },
+   { href: "/insights", label: "AI Insights", icon: "🏷️" },
 ];
 
 export default function DashboardLayout({

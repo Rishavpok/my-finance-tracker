@@ -168,7 +168,7 @@ useEffect(() => {
           <div className={styles.field}>
             <label className={styles.label}>Amount</label>
             <div className={styles.amountWrapper}>
-              <span className={styles.currency}>$</span>
+              <span className={styles.currency}>Rs </span>
               <input
                 {...register("amount", {
                   required: "Amount is required",
