@@ -339,7 +339,7 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.recentList}>
-          {transactions.map((t) => (
+          {transactions.slice(0,5).map((t) => (
             <div key={t.id} className={styles.recentItem}>
               <div
                 className={`${styles.icon} ${t.type === "income" ? styles.iconIncome : styles.iconExpense}`}
