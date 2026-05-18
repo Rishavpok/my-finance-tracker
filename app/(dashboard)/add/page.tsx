@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,28 +11,6 @@ import {
 } from "@/app/services/transaction.service";
 import toast from "react-hot-toast";
 
-const categories = [
-  "Food & Dining",
-  "Transport",
-  "Shopping",
-  "Entertainment",
-  "Health",
-  "Education",
-  "Salary",
-  "Freelance",
-  "Other",
-];
-
-type Transaction = {
-  id: string;
-  title: string;
-  amount: number;
-  type: "income" | "expense";
-  category: string;
-  date: string;
-  note?: string;
-};
-
 type TransactionForm = {
   id: string;
   title: string;
@@ -43,14 +21,14 @@ type TransactionForm = {
   note?: string;
 };
 
-type category = {
+type Category = {
   icon: string;
   name: string;
 };
 
-export default function AddTransactionPage() {
+function AddTransactionContent() {
   const [activeIndex, setactiveIndex] = useState(0);
-  const [categories, setcategories] = useState<category[]>([]);
+  const [categories, setcategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
@@ -72,7 +50,9 @@ export default function AddTransactionPage() {
         ...data,
         type: activeIndex === 0 ? "expense" : "income",
       };
-     const res = await (id ? updateTransaction(transaction, id!) : createTransaction(transaction));
+      const res = await (id
+        ? updateTransaction(transaction, id!)
+        : createTransaction(transaction));
 
       if (res) {
         toast.success("Transaction added successfully");
@@ -93,34 +73,34 @@ export default function AddTransactionPage() {
 
   async function getSingleTransaction(id: string) {
     const res = await getTransactionsById(id);
-    const transaction = res['data']['transaction']
+    const transaction = res["data"]["transaction"];
     if (transaction) {
-  reset({
-      title: transaction.title,
-      amount: transaction.amount,
-      category: transaction.category,
-      date: transaction.date.split("T")[0],  // "2026-05-15"
-      note: transaction.note ?? "",
-    });
-    setactiveIndex(transaction.type === "income" ? 1 : 0);
+      reset({
+        title: transaction.title,
+        amount: transaction.amount,
+        category: transaction.category,
+        date: transaction.date.split("T")[0],
+        note: transaction.note ?? "",
+      });
+      setactiveIndex(transaction.type === "income" ? 1 : 0);
     }
   }
 
-useEffect(() => {
-  async function init() {
-    await getCategories(); // wait for categories to load first
-    if (id) {
-      await getSingleTransaction(id); // then prefill form
+  useEffect(() => {
+    async function init() {
+      await getCategories();
+      if (id) {
+        await getSingleTransaction(id);
+      }
     }
-  }
-  init();
-}, []); // single effect, correct order
+    init();
+  }, []);
 
   return (
     <div className={styles.page}>
       {/* ── Page header ── */}
       <div className={styles.header}>
-        <h2 className={styles.title}>Add Transaction</h2>
+        <h2 className={styles.title}>{id ? "Edit Transaction" : "Add Transaction"}</h2>
         <p className={styles.subtitle}>Record a new income or expense</p>
       </div>
 
@@ -198,14 +178,16 @@ useEffect(() => {
                   </option>
                 ))}
               </select>
-
               {errors.category && (
                 <span className={styles.error}>{errors.category.message}</span>
               )}
-
-              {
-                categories.length === 0 ? <p className={styles.createcategory} >Please create a category first</p>: ""
-              }
+              {categories.length === 0 ? (
+                <p className={styles.createcategory}>
+                  Please create a category first
+                </p>
+              ) : (
+                ""
+              )}
             </div>
 
             <div className={styles.field}>
@@ -251,11 +233,19 @@ useEffect(() => {
               disabled={isLoading}
               className={styles.btnPrimary}
             >
-              {!id ? "Save Transaction" : "Update Transaction"}
+              {isLoading ? "Saving..." : id ? "Update Transaction" : "Save Transaction"}
             </button>
           </div>
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AddTransactionPage() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <AddTransactionContent />
+    </Suspense>
   );
 }

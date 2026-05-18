@@ -302,7 +302,7 @@ export default function DashboardPage() {
                 paddingAngle={3}
                 dataKey="value"
               >
-                {categoryData.map((_, index) => (
+                {categoryData.map((_:any, index:any) => (
                   <Cell
                     key={index}
                     fill={PIE_COLORS[index % PIE_COLORS.length]}

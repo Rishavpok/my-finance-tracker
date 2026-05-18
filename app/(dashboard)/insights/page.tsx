@@ -35,7 +35,7 @@ const underspending = recommendations.filter((r: any) => r.status === "under").l
     );
 
     const income = incomeTransaction.reduce(
-      (sum, t) => sum + Number(t.amount),
+      (sum:any, t:any) => sum + Number(t.amount),
       0,
     );
 

@@ -22,7 +22,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const [user, setUser] = useState(null);
+ const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
 
   function handleLogout() {
     localStorage.clear();
@@ -81,7 +82,7 @@ export default function DashboardLayout({
           <header className={styles.header}>
             <div>
               <h1 className={styles.pageTitle}>
-                {navItems.find((item) => item.pathname === pathname)?.label ??
+                {navItems.find((item:any) => item.pathname === pathname)?.label ??
                   "Dashboard"}
               </h1>
               <p className={styles.pageDate}>
