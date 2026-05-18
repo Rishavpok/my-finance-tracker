@@ -4,7 +4,10 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { deleteTransaction, getTransactions } from "@/app/services/transaction.service";
+import {
+  deleteTransaction,
+  getTransactions,
+} from "@/app/services/transaction.service";
 import { deleteCategory, getCategory } from "@/app/services/categories.service";
 
 type category = {
@@ -54,6 +57,7 @@ export default function TransactionsPage() {
   const [income, setincome] = useState(0);
   const [expense, setexpense] = useState(0);
   const [total, settotal] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState("");
 
   // router
   const router = useRouter();
@@ -135,14 +139,52 @@ export default function TransactionsPage() {
       setTransaction(res["data"]["data"]);
       setAllTransactions(res["data"]["data"]);
       totalCalculation(res["data"]["data"]);
+      // getUniqueMonths(res["data"]["data"])
     } catch (e) {
       toast.error("Something went wrong");
     }
   }
 
+  function handleMonthFilter(month: string) {
+  setSelectedMonth(month);
+  const list = allTransactions
+
+  if (month === "") {
+    setTransaction(list);
+    return;
+  }
+
+  const filtered = list.filter((t: any) => {
+    const date = new Date(t.date);
+    const transMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    return transMonth === month;
+  });
+
+  setTransaction(filtered);
+}
+
+  
+
   async function getCategories() {
     const res = await getCategory();
     setcategories(res["data"]["data"]);
+  }
+
+  // get unique months from transactions
+  function getUniqueMonths(transactions: any[]) {
+    const months = transactions.map((t) => {
+      const date = new Date(t.date);
+      return {
+        value: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+        label: date.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        }),
+      };
+    });
+
+    // remove duplicates
+    return [...new Map(months.map((m) => [m.value, m])).values()];
   }
 
   useEffect(() => {
@@ -216,11 +258,17 @@ export default function TransactionsPage() {
             </option>
           ))}
         </select>
-        <select className={styles.filterSelect}>
+        <select
+          className={styles.filterSelect}
+          value={selectedMonth}
+          onChange={(e) => handleMonthFilter(e.target.value)}
+        >
           <option value="">All Months</option>
-          <option value="2026-05">May 2026</option>
-          <option value="2026-04">April 2026</option>
-          <option value="2026-03">March 2026</option>
+          {getUniqueMonths(transactions).map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
+          ))}
         </select>
       </div>
 

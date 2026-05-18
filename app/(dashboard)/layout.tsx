@@ -11,6 +11,7 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: "💸" },
   { href: "/add", label: "Add Transaction", icon: "➕" },
   { href: "/categories", label: "Categories", icon: "🏷️" },
+  //  { href: "/insights", label: "AI Insights", icon: "🏷️" },
 ];
 
 export default function DashboardLayout({
@@ -67,7 +68,7 @@ export default function DashboardLayout({
               </div>
               <div className={styles.userInfo}>
                 <p className={styles.userName}>{user && user["name"]}</p>
-                <p className={styles.userEmail}>j{user && user["email"]}</p>
+                <p className={styles.userEmail}>{user && user["email"]}</p>
               </div>
             </div>
             <button onClick={handleLogout} className={styles.logoutBtn}>🚪 Logout</button>
